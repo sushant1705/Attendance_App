@@ -3,7 +3,7 @@ import os
 import cv2
 
 # Directory containing known faces
-known_faces_dir = "D:/VS CODES/Pyhton CV/Face Detection/known"
+known_faces_dir = "D:/VS CODES/Pyhton CV/Attendance_App/known"
 
 # Load known faces
 known_faces = []
@@ -21,7 +21,7 @@ for person_name in os.listdir(known_faces_dir):
                 known_names.append(person_name)
 
 # Load an unknown image to recognize faces
-unknown_image = face_recognition.load_image_file("D:/VS CODES/Pyhton CV/Face Detection/unknowm/images (2).jpeg")
+unknown_image = face_recognition.load_image_file("D:/VS CODES/Pyhton CV/Attendance_App/unknowm/images (2).jpeg")
 
 # Find all face locations and face encodings in the unknown image
 face_locations = face_recognition.face_locations(unknown_image)
