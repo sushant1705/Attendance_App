@@ -38,10 +38,11 @@ for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodi
         match_index = matches.index(True)
         name = known_names[match_index]
 
-    # Draw a rectangle around the face and label it
     import cv2
     cv2.rectangle(unknown_image, (left, top), (right, bottom), (0, 0, 255), 2)
-    cv2.putText(unknown_image, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+    cv2.rectangle(unknown_image, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+    font = cv2.FONT_HERSHEY_DUPLEX
+    cv2.putText(unknown_image, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
 # Display the result
 cv2.imshow("Face Recognition", unknown_image)
