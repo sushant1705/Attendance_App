@@ -24,11 +24,13 @@ face_names = []
 
 video_capture = cv2.VideoCapture(0)
 
+
+video_capture_bgr = cv2.imread('D:/VS CODES/Pyhton CV/Attendance_App/Resources/background.png')
+
 while True:
     ret, frame = video_capture.read()
     
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-
     rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
 
     face_locations = face_recognition.face_locations(rgb_small_frame)
@@ -57,7 +59,22 @@ while True:
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-    cv2.imshow('Face Recognition', frame)
+    # Calculate scaling factor
+    x_scaling_factor = 535 / frame.shape[1]
+    y_scaling_factor = 400 / frame.shape[0]
+
+    scaling_factor = min(x_scaling_factor, y_scaling_factor)
+
+    frame_resized = cv2.resize(frame, None, fx=scaling_factor, fy=scaling_factor)
+
+    # Calculate the upper-left coordinates to fit the scaled frame
+    x_offset = int((540 - frame_resized.shape[1]) / 2)
+    y_offset = int((410 - frame_resized.shape[0]) / 2)
+
+    # Overlay the scaled frame on the background image
+    video_capture_bgr[210+y_offset: 210+y_offset+frame_resized.shape[0], 89+x_offset: 89+x_offset+frame_resized.shape[1], :] = frame_resized
+    # cv2.imshow('Face Recognition', frame)
+    cv2.imshow('Face Recognition', video_capture_bgr)
 
     if cv2.waitKey(1) ==13 :
         break
