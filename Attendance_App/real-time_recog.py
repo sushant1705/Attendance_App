@@ -23,9 +23,13 @@ face_encodings = []
 face_names = []
 
 video_capture = cv2.VideoCapture(0)
-
-
 video_capture_bgr = cv2.imread('D:/VS CODES/Pyhton CV/Attendance_App/Resources/background.png')
+
+imgModelist= []
+modes_dir="D:/VS CODES/Pyhton CV/Attendance_App/Resources/modes"
+for image in os.listdir(modes_dir):
+    imgModelist.append(cv2.imread(os.path.join(modes_dir,image)))
+
 
 while True:
     ret, frame = video_capture.read()
@@ -73,6 +77,7 @@ while True:
 
     # Overlay the scaled frame on the background image
     video_capture_bgr[210+y_offset: 210+y_offset+frame_resized.shape[0], 89+x_offset: 89+x_offset+frame_resized.shape[1], :] = frame_resized
+    video_capture_bgr[0: imgModelist[2].shape[0], 748: 748 + imgModelist[2].shape[1], :] = imgModelist[2]
     # cv2.imshow('Face Recognition', frame)
     cv2.imshow('Face Recognition', video_capture_bgr)
 
