@@ -1,6 +1,10 @@
-import cv2
 import face_recognition
 import os
+import cv2
+import boto3
+
+s3 = boto3.client('s3', region_name='ap-south-1')
+bucket_name = 'faceattendbucket'
 
 known_faces_dir = "D:/VS CODES/Pyhton CV/Attendance_App/known"
 
@@ -17,6 +21,7 @@ for person_name in os.listdir(known_faces_dir):
                 face_encoding = face_recognition.face_encodings(face_image)[0]
                 known_face_encodings.append(face_encoding)
                 known_face_names.append(person_name)
+                s3.upload_file(image_path, bucket_name, f'Known-Images/{person_name}/{filename}')
 
 face_locations = []
 face_encodings = []
