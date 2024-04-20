@@ -95,7 +95,7 @@ while True:
 
     if counter == 0:
         counter = 1
-        modetype = 1
+        modetype = 0
 
     if recognized_name and recognized_name != "Unknown":
         image_key_base = f"Known-Images/{recognized_name}/{recognized_name}"
@@ -112,6 +112,7 @@ while True:
 
         if counter != 0:
             if counter == 1:
+                modetype = 1
                 response = s3.get_object(Bucket=bucket_name, Key=image_key)
                 image_data = response['Body'].read()
                 img_np = np.frombuffer(image_data, np.uint8)
@@ -132,21 +133,30 @@ while True:
                     print(f"Email: {recognized_person['email']}")
                     print(f"Department: {recognized_person['department']}")
                 else:
-                    print(f"Details for '{recognized_name}' not found in the JSON data.")
-
-            department_text = recognized_person['department'] if recognized_person is not None else "Department Not Found"
-            id_text = str(recognized_person['id'] if recognized_person is not None else "ID Not Found")
-            cv2.putText(video_capture_bgr, id_text, (747+190, 503), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,0), 1)
-            cv2.putText(video_capture_bgr, department_text, (747+190, 582), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,0), 1)
-            imgModelist[modetype][210:210+209, 123:123+209] = imgStudent
+                    print(f"Details for '{recognized_name}' not found in the JSON data.")      
+                    
+                      
+            if 10<counter <20:
+                modetype = 2
+            video_capture_bgr[0: imgModelist[modetype].shape[0], 748: 748 + imgModelist[modetype].shape[1], :] = imgModelist[modetype]    
+                
+            if counter <=10:
+                department_text = recognized_person['department'] if recognized_person is not None else "Department Not Found"
+                id_text = str(recognized_person['id'] if recognized_person is not None else "ID Not Found")
+                cv2.putText(video_capture_bgr, id_text, (747+190, 503), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,0), 1)
+                cv2.putText(video_capture_bgr, department_text, (747+190, 582), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,0), 1)
+                imgModelist[modetype][210:210+209, 123:123+209] = imgStudent
 
                    
             counter+=1   
             
-
-            # cv2.putText( imgModelist[modetype], recognized_person['name'], (489, 190), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
-        
-
+            if counter >=20:
+                counter  =0
+                modetype = 0
+                # recognized_person = None   fix this
+                imgStudent = []
+                video_capture_bgr[0: imgModelist[modetype].shape[0], 748: 748 + imgModelist[modetype].shape[1], :] = imgModelist[modetype] 
+ 
     
     
     cv2.imshow('Face Recognition', video_capture_bgr)
