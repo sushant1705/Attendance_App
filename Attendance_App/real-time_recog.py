@@ -124,6 +124,12 @@ while True:
                     if person['name'] == recognized_name:
                         recognized_person = person
                         break
+                
+                for person in persons_dict['persons']:
+                    person['total-attendance'] += 1
+                    updated_json_str = json.dumps(persons_dict)
+                    s3.put_object(Bucket=bucket_name, Key=file_name, Body=updated_json_str)
+                    print('Attendance updated for all persons successfully.')
 
                 # Check if the recognized person was found
                 print(recognized_person)
