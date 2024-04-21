@@ -4,6 +4,7 @@ import cv2
 import boto3
 import numpy as np
 import json
+from datetime import datetime
 
 s3 = boto3.client('s3', region_name='ap-south-1')
 bucket_name = 'faceattendbucket'
@@ -117,53 +118,79 @@ while True:
                 image_data = response['Body'].read()
                 img_np = np.frombuffer(image_data, np.uint8)
                 imgStudent = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
-                print("Image downloaded and displayed successfully.")
-                print("Recognized Name:", recognized_name)
+                # print("Image downloaded and displayed successfully.")
+                # print("Recognized Name:", recognized_name)
+
                 recognized_person = None
                 for person in persons_dict['persons']:
                     if person['name'] == recognized_name:
                         recognized_person = person
                         break
-                
-                for person in persons_dict['persons']:
-                    person['total-attendance'] += 1
-                    updated_json_str = json.dumps(persons_dict)
-                    s3.put_object(Bucket=bucket_name, Key=file_name, Body=updated_json_str)
-                    print('Attendance updated for all persons successfully.')
+
+                if recognized_person:
+                    last_attendance_time_str = recognized_person['last-attendance-time']
+                    last_attendance_time = datetime.strptime(last_attendance_time_str, "%Y-%m-%d %H:%M:%S")
+                    elapsed_time = (datetime.now() - last_attendance_time).total_seconds()
+                    # print(f"Elapsed time since last attendance: {elapsed_time}")
+                    if elapsed_time>= 3600:
+                        # Update last attendance time to current time
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        recognized_person['last-attendance-time'] = current_time
+                        
+                        # Increment total attendance by 1 for all persons
+                        for person in persons_dict['persons']:
+                            person['total-attendance'] += 1
+
+                        # Convert updated JSON data back to string
+                        updated_json_str = json.dumps(persons_dict)
+
+                        # Upload updated JSON file back to S3
+                        s3.put_object(Bucket=bucket_name, Key=file_name, Body=updated_json_str)
+                        # print('Attendance updated for all persons successfully.')
+                    else:
+                        modetype = 3
+                        counter  = 0
+                        # imgModelist[modetype][210:210+209, 123:123+209] = imgStudent
+                        
+                        
+                else:   
+                    print(f"Recognized person '{recognized_name}' not found in the JSON data.")
+
 
                 # Check if the recognized person was found
-                print(recognized_person)
-                if recognized_person is not None:
-                    print("Recognized Person Details:") 
-                    print(f"Name: {recognized_person['name']}")
-                    print(f"Email: {recognized_person['email']}")
-                    print(f"Department: {recognized_person['department']}")
-                else:
-                    print(f"Details for '{recognized_name}' not found in the JSON data.")      
+                # print(recognized_person)
+                # if recognized_person is not None:
+                #     print("Recognized Person Details:") 
+                #     print(f"Name: {recognized_person['name']}")
+                #     print(f"Email: {recognized_person['email']}")
+                #     print(f"Department: {recognized_person['department']}")
+                # else:
+                #     print(f"Details for '{recognized_name}' not found in the JSON data.")      
                     
-                      
-            if 10<counter <20:
-                modetype = 2
-            video_capture_bgr[0: imgModelist[modetype].shape[0], 748: 748 + imgModelist[modetype].shape[1], :] = imgModelist[modetype]    
-                
-            if counter <=10:
-                department_text = recognized_person['department'] if recognized_person is not None else "Department Not Found"
-                id_text = str(recognized_person['id'] if recognized_person is not None else "ID Not Found")
-                attendance_text = str(recognized_person['total-attendance'] if recognized_person is not None else "NA")
-                cv2.putText(video_capture_bgr, id_text, (747+190, 503), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0,0,0), 2)
-                cv2.putText(video_capture_bgr, attendance_text, (747+108, 150), cv2.FONT_HERSHEY_COMPLEX, 0.6, (0,0,0), 2)
-                cv2.putText(video_capture_bgr, department_text, (747+190, 582), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0,0,0), 2)
-                imgModelist[modetype][210:210+209, 123:123+209] = imgStudent
+            if modetype != 3:
+                          
+                if 10<counter <20:
+                    modetype = 2
+                video_capture_bgr[0: imgModelist[modetype].shape[0], 748: 748 + imgModelist[modetype].shape[1], :] = imgModelist[modetype]    
+                    
+                if counter <=10:
+                    department_text = recognized_person['department'] if recognized_person is not None else "Department Not Found"
+                    id_text = str(recognized_person['id'] if recognized_person is not None else "ID Not Found")
+                    attendance_text = str(recognized_person['total-attendance'] if recognized_person is not None else "NA")
+                    cv2.putText(video_capture_bgr, id_text, (747+190, 503), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0,0,0), 2)
+                    cv2.putText(video_capture_bgr, attendance_text, (747+108, 150), cv2.FONT_HERSHEY_COMPLEX, 0.6, (0,0,0), 2)
+                    cv2.putText(video_capture_bgr, department_text, (747+190, 582), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0,0,0), 2)
+                    imgModelist[modetype][210:210+209, 123:123+209] = imgStudent
 
-                   
-            counter+=1   
-            
-            if counter >=20:
-                counter  =0
-                modetype = 0
-                # recognized_person = None   fix this
-                imgStudent = []
-                video_capture_bgr[0: imgModelist[modetype].shape[0], 748: 748 + imgModelist[modetype].shape[1], :] = imgModelist[modetype] 
+                    
+                counter+=1   
+                
+                if counter >=20:
+                    counter  =0
+                    modetype = 0
+                    # recognized_person = None   fix this
+                    imgStudent = []
+                    video_capture_bgr[0: imgModelist[modetype].shape[0], 748: 748 + imgModelist[modetype].shape[1], :] = imgModelist[modetype] 
  
     
     
