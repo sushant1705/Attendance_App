@@ -149,8 +149,10 @@ while True:
             if counter <=10:
                 department_text = recognized_person['department'] if recognized_person is not None else "Department Not Found"
                 id_text = str(recognized_person['id'] if recognized_person is not None else "ID Not Found")
-                cv2.putText(video_capture_bgr, id_text, (747+190, 503), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,0), 1)
-                cv2.putText(video_capture_bgr, department_text, (747+190, 582), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,0), 1)
+                attendance_text = str(recognized_person['total-attendance'] if recognized_person is not None else "NA")
+                cv2.putText(video_capture_bgr, id_text, (747+190, 503), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0,0,0), 2)
+                cv2.putText(video_capture_bgr, attendance_text, (747+108, 150), cv2.FONT_HERSHEY_COMPLEX, 0.6, (0,0,0), 2)
+                cv2.putText(video_capture_bgr, department_text, (747+190, 582), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0,0,0), 2)
                 imgModelist[modetype][210:210+209, 123:123+209] = imgStudent
 
                    
