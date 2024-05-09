@@ -5,10 +5,15 @@ import boto3
 import numpy as np
 import json
 from datetime import datetime
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 s3 = boto3.client('s3', region_name='ap-south-1')
 bucket_name = 'faceattendbucket'
 known_faces_dir = "D:/VS CODES/Pyhton CV/Attendance_App/known"
+gmail_username = 'souravsushant007@gmail.com'
+gmail_app_password = 'hkijfpmxcvzhwwum'
 
 known_face_encodings = []
 known_face_names = []
@@ -133,7 +138,7 @@ while True:
                     elapsed_time = (datetime.now() - last_attendance_time).total_seconds()
                     # print(f"Elapsed time since last attendance: {elapsed_time}")
                     if elapsed_time>= 3600:
-                        # Update last attendance time to current time
+                        # Update last attendance time torrent time
                         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         recognized_person['last-attendance-time'] = current_time
                         
@@ -147,6 +152,34 @@ while True:
                         # Upload updated JSON file back to S3
                         s3.put_object(Bucket=bucket_name, Key=file_name, Body=updated_json_str)
                         # print('Attendance updated for all persons successfully.')
+                        
+                         # Send email notification
+                        if gmail_username and gmail_app_password:
+                            sender_email = gmail_username
+                            receiver_email = recognized_person['email']
+                            subject = 'Attendance Marked'
+                            body = f'Attendance for {recognized_name} has been marked at {current_time}.'
+
+                            message = MIMEMultipart()
+                            message['From'] = sender_email
+                            message['To'] = receiver_email
+                            message['Subject'] = subject
+                            message.attach(MIMEText(body, 'plain'))
+                             # Initialize SMTP server
+                            server = None
+
+
+                            try:
+                                server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                                server.login(gmail_username, gmail_app_password)
+                                server.sendmail(sender_email, receiver_email, message.as_string())
+                                print('Email sent successfully!')
+                            except Exception as e:
+                                print('Error sending email:', e)
+                            finally:
+                                if server is not None:
+                                    server.quit()
+                        
                     else:
                         modetype = 3
                         counter  = 0
@@ -154,18 +187,7 @@ while True:
                         
                         
                 else:   
-                    print(f"Recognized person '{recognized_name}' not found in the JSON data.")
-
-
-                # Check if the recognized person was found
-                # print(recognized_person)
-                # if recognized_person is not None:
-                #     print("Recognized Person Details:") 
-                #     print(f"Name: {recognized_person['name']}")
-                #     print(f"Email: {recognized_person['email']}")
-                #     print(f"Department: {recognized_person['department']}")
-                # else:
-                #     print(f"Details for '{recognized_name}' not found in the JSON data.")      
+                    print(f"Recognized person '{recognized_name}' not found in the JSON data.")    
                     
             if modetype != 3:
                           
